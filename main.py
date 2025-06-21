@@ -14,27 +14,29 @@ def get_trends():
             "Google Ads", "Meta Ads", "ecommerce", "intelligence artificielle"
         ]
 
-        all_related_queries = []
+        all_queries = []
 
         for kw in base_keywords:
-            try:
-                pytrends.build_payload([kw], cat=0, timeframe='now 7-d', geo='CA', gprop='')
-                related = pytrends.related_queries()
+            # Suggestions enrichies
+            suggestions = pytrends.suggestions(kw)
+            queries = [s['title'] for s in suggestions]
+            all_queries.extend(queries)
 
-                if related and isinstance(related, dict) and kw in related:
-                    rising = related[kw].get('rising')
-                    if rising is not None and not rising.empty:
-                        queries = rising['query'].tolist()
-                        all_related_queries.extend(queries)
-            except Exception as e_inner:
-                # On logue mais on continue si un seul mot clé plante
-                print(f"Erreur sur le mot-clé '{kw}': {str(e_inner)}")
+            # Related queries (sur un timeframe élargi)
+            pytrends.build_payload([kw], cat=0, timeframe='today 3-m', geo='CA', gprop='')
+            related = pytrends.related_queries()
 
-        if not all_related_queries:
+            if related and isinstance(related, dict) and kw in related:
+                rising = related[kw].get('rising')
+                if rising is not None and not rising.empty:
+                    queries = rising['query'].tolist()
+                    all_queries.extend(queries)
+
+        if not all_queries:
             return {"trends": []}
 
         # Nettoyage et déduplication
-        clean_trends = list(set(all_related_queries))
+        clean_trends = list(set(all_queries))
 
         return {"trends": clean_trends}
 
