@@ -20,9 +20,14 @@ def get_trends():
             pytrends.build_payload([kw], cat=0, timeframe='now 7-d', geo='CA', gprop='')
             related = pytrends.related_queries()
 
-            if related.get(kw) and related[kw]['rising'] is not None:
-                queries = related[kw]['rising']['query'].tolist()
-                all_related_queries.extend(queries)
+            if related and kw in related:
+                rising = related[kw].get('rising')
+                if rising is not None and not rising.empty:
+                    queries = rising['query'].tolist()
+                    all_related_queries.extend(queries)
+
+        if not all_related_queries:
+            return {"trends": []}
 
         # Nettoyage et déduplication
         clean_trends = list(set(all_related_queries))
