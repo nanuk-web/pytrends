@@ -8,8 +8,9 @@ app = FastAPI()
 def get_trends():
     try:
         pytrends = TrendReq(hl='fr-CA', tz=360, geo='CA')
-        trending_searches = pytrends.trending_searches(pn='canada')
-        trends = trending_searches[0:20].values.tolist()
+        # Exemple avec top charts 2024
+        df = pytrends.top_charts(2024, hl='fr-CA', geo='CA')
+        trends = df['title'].values.tolist()
         return {"trends": trends}
     except Exception as e:
         return {"error": str(e)}
