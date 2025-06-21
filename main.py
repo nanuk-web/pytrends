@@ -17,14 +17,18 @@ def get_trends():
         all_related_queries = []
 
         for kw in base_keywords:
-            pytrends.build_payload([kw], cat=0, timeframe='now 7-d', geo='CA', gprop='')
-            related = pytrends.related_queries()
+            try:
+                pytrends.build_payload([kw], cat=0, timeframe='now 7-d', geo='CA', gprop='')
+                related = pytrends.related_queries()
 
-            if related and kw in related:
-                rising = related[kw].get('rising')
-                if rising is not None and not rising.empty:
-                    queries = rising['query'].tolist()
-                    all_related_queries.extend(queries)
+                if related and isinstance(related, dict) and kw in related:
+                    rising = related[kw].get('rising')
+                    if rising is not None and not rising.empty:
+                        queries = rising['query'].tolist()
+                        all_related_queries.extend(queries)
+            except Exception as e_inner:
+                # On logue mais on continue si un seul mot clé plante
+                print(f"Erreur sur le mot-clé '{kw}': {str(e_inner)}")
 
         if not all_related_queries:
             return {"trends": []}
